@@ -1,0 +1,7 @@
+authors = ["Allen Hill <allenofthehills@gmail.com>"]
+name = "VaxData"
+uuid = "cd31b0e8-6739-11e8-0670-d1d5e0f20447"
+version = "0.1.0"
+
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
