@@ -3,7 +3,7 @@ export VaxFloatG
 primitive type VaxFloatG <: AbstractFloat 64 end
 
 VaxFloatG(x::UInt64) = reinterpret(VaxFloatG,ltoh(x))
-function VaxFloatG(x::Float64)
+function VaxFloatG(x::{<:Real})
     parts = reinterpret(UInt32,[ltoh(x)])
     if ENDIAN_BOM == 0x04030201 
         vaxpart2 = parts[1]
@@ -78,3 +78,7 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
     end
     return reinterpret(Float64,[out1,out2])[1]
 end
+Base.convert(::Type{T},x::VaxFloatG) where T <: Number = convert(T,convert(Float64,x))
+
+Base.promote_rule(::Type{T},x::VaxFloatG) where T <: AbstractFloat = T
+

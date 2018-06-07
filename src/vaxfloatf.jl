@@ -3,8 +3,8 @@ export VaxFloatF
 primitive type VaxFloatF <: AbstractFloat 32  end
 
 VaxFloatF(x::UInt32) = reinterpret(VaxFloatF,ltoh(x))
-function VaxFloatF(x::Float32)
-    ieeepart1 = reinterpret(UInt32,x)
+function VaxFloatF(x::{<:Real})
+    ieeepart1 = reinterpret(UInt32,convert(Float32,x))
     if (ieeepart1 & ~SIGN_BIT) == 0
         vaxpart = UInt32(0)
     elseif (e::UInt32 = ieeepart1 & IEEE_S_EXPONENT_MASK) == IEEE_S_EXPONENT_MASK
@@ -52,3 +52,7 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
         end
     end
 end
+Base.convert(::Type{T},x::VaxFloatF) where T <: Number = convert(T,convert(Float32,x))
+
+Base.promote_rule(::Type{T},x::VaxFloatF) where T <: AbstractFloat = T
+
