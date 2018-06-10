@@ -1,7 +1,5 @@
 module VaxData
 
-import Base: convert
-
 include("constants.jl")
 include("vaxints.jl")
 include("vaxfloatf.jl")
