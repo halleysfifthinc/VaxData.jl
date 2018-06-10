@@ -13,19 +13,49 @@
                 0x075BCD15,
                 0xF8A432EB ]
 
-    i4_ieee = Array{Int32}([ 1, -1, 256, -256, 65536, -65536, 16777216, -16777216, 123456789, -123456789 ])
+    i4_ieee = Array{Int32}([          1,
+                                     -1,
+                                    256,
+                                   -256,
+                                  65536,
+                                 -65536,
+                               16777216,
+                              -16777216,
+                              123456789,
+                             -123456789 ])
 
     @testset "VaxInt16" begin
-        for (vax, ieee) in zip(i2_vax, i2_ieee)
-            @test VaxInt16(vax) == VaxInt16(ieee)
-            @test convert(Int16,VaxInt16(vax)) == ieee
+        @testset "Conversion..." begin
+            for (vax, ieee) in zip(i2_vax, i2_ieee)
+                @test VaxInt16(vax) == VaxInt16(ieee)
+                @test convert(Int16, VaxInt16(vax)) == ieee
+            end
+        end
+
+        @testset "Promotion..." begin
+            @test isa(one(Int8)*VaxInt16(1), Int16)
+            for t in [Int16, Int32, Int64, Int128, Float16, Float32, Float64]
+                @test isa(one(t)*VaxInt16(1), t)
+            end
         end
     end
 
     @testset "VaxInt32" begin
-        for (vax, ieee) in zip(i4_vax, i4_ieee)
-            @test VaxInt32(vax) == VaxInt32(ieee)
-            @test convert(Int32,VaxInt32(vax)) == ieee
+        @testset "Conversion..." begin
+            for (vax, ieee) in zip(i4_vax, i4_ieee)
+                @test VaxInt32(vax) == VaxInt32(ieee)
+                @test convert(Int32, VaxInt32(vax)) == ieee
+            end
+        end
+
+        @testset "Promotion..." begin
+            for t in [Int8, Int16]
+                @test isa(one(t)*VaxInt32(1), Int32)
+            end
+
+            for t in [Int32, Int64, Int128, Float16, Float32, Float64]
+                @test isa(one(t)*VaxInt32(1), t)
+            end
         end
     end
 end

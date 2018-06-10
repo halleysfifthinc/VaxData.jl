@@ -2,9 +2,9 @@ export VaxFloatG
 
 primitive type VaxFloatG <: AbstractFloat 64 end
 
-VaxFloatG(x::UInt64) = reinterpret(VaxFloatG,ltoh(x))
-function VaxFloatG(x::{<:Real})
-    parts = reinterpret(UInt32,[ltoh(x)])
+VaxFloatG(x::UInt64) = reinterpret(VaxFloatG, ltoh(x))
+function VaxFloatG(x::T) where T <: Real
+    parts = reinterpret(UInt32,[convert(Float64,x)])
     if ENDIAN_BOM == 0x04030201 
         vaxpart2 = parts[1]
         ieeepart1 = parts[2]
@@ -67,18 +67,19 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
             ieeepart1 = (vaxpart1 & SIGN_BIT) | (UInt32(vaxpart1 & (VAX_G_HIDDEN_BIT | VAX_G_MANTISSA_MASK)) >>> (1 - e))
             ieeepart2 = (vaxpart1 << (31 + e)) | (vaxpart2 >>> (1-e))
         end
+
+        if ENDIAN_BOM == 0x04030201
+            out1 = ieeepart2
+            out2 = ieeepart1
+        else
+            out1 = ieeepart1
+            out2 = ieeepart2
+        end
     end
 
-    if ENDIAN_BOM == 0x04030201
-        out1 = ieeepart2
-        out2 = ieeepart1
-    else
-        out1 = ieeepart1
-        out2 = ieeepart2
-    end
     return reinterpret(Float64,[out1,out2])[1]
 end
-Base.convert(::Type{T},x::VaxFloatG) where T <: Number = convert(T,convert(Float64,x))
+Base.convert(::Type{T},x::VaxFloatG) where T <: Union{Float16, Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
 
-Base.promote_rule(::Type{T},x::VaxFloatG) where T <: AbstractFloat = T
+Base.promote_rule(::Type{T},x::Type{VaxFloatG}) where T <: Union{AbstractFloat, Integer} = Float64
 

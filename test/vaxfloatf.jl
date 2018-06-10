@@ -25,8 +25,20 @@
                                 1.23456789,
                                -1.23456789 ])
 
-    for (vax, ieee) in zip(f4_vax, f4_ieee)
-        @test VaxFloatF(vax) == VaxFloatF(ieee)
-        @test convert(Float32,VaxFloatF(vax)) == ieee
+    @testset "Conversion..." begin
+        for (vax, ieee) in zip(f4_vax, f4_ieee)
+            @test VaxFloatF(vax) == VaxFloatF(ieee)
+            @test convert(Float32, VaxFloatF(vax)) == ieee
+        end
+    end
+
+    @testset "Promotion..." begin
+        for t in [Int8, Int16, Int32, Float16, Float32]
+            @test isa(one(t)*VaxFloatF(1), Float32)
+        end
+
+        for t in [Int64, Int128, Float64]
+            @test isa(one(t)*VaxFloatF(1), Float64)
+        end
     end
 end

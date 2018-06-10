@@ -1,9 +1,9 @@
 export VaxFloatF
 
-primitive type VaxFloatF <: AbstractFloat 32  end
+primitive type VaxFloatF <: AbstractFloat 32 end
 
-VaxFloatF(x::UInt32) = reinterpret(VaxFloatF,ltoh(x))
-function VaxFloatF(x::{<:Real})
+VaxFloatF(x::UInt32) = reinterpret(VaxFloatF, ltoh(x))
+function VaxFloatF(x::T) where T <: Real
     ieeepart1 = reinterpret(UInt32,convert(Float32,x))
     if (ieeepart1 & ~SIGN_BIT) == 0
         vaxpart = UInt32(0)
@@ -46,13 +46,18 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
         e >>>= VAX_F_MANTISSA_SIZE
 
         if (e::UInt32 -= ( UNO + VAX_F_EXPONENT_BIAS - IEEE_S_EXPONENT_BIAS )) > 0
-            return reinterpret(Float32, vaxpart1 - ( ( UNO + VAX_F_EXPONENT_BIAS - IEEE_S_EXPONENT_BIAS )::UInt32 << IEEE_S_MANTISSA_SIZE ))
+            out = vaxpart1 -
+                (( UNO + VAX_F_EXPONENT_BIAS - IEEE_S_EXPONENT_BIAS )::UInt32 <<
+                    IEEE_S_MANTISSA_SIZE)
         else
-            return reinterpret(Float32, ( vaxpart1 & SIGN_BIT ) | ((VAX_F_HIDDEN_BIT | (vaxpart1 & VAX_F_MANTISSA_MASK)) >>> ( UNO - e)))
+            out = (vaxpart1 & SIGN_BIT) |
+                ((VAX_F_HIDDEN_BIT | (vaxpart1 & VAX_F_MANTISSA_MASK)) >>> (UNO - e))
         end
     end
-end
-Base.convert(::Type{T},x::VaxFloatF) where T <: Number = convert(T,convert(Float32,x))
 
-Base.promote_rule(::Type{T},x::VaxFloatF) where T <: AbstractFloat = T
+    return reinterpret(Float32, out)
+end
+Base.convert(::Type{T},x::VaxFloatF) where T <: Union{Float16, Float64, BigFloat, Integer} = convert(T,convert(Float32,x))
+
+Base.promote_rule(::Type{T},::Type{VaxFloatF}) where T <: Union{AbstractFloat, Integer} = (sizeof(T) <= 4) ? Float32 : Float64
 
