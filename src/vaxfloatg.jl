@@ -1,6 +1,6 @@
 export VaxFloatG
 
-primitive type VaxFloatG <: AbstractFloat 64 end
+primitive type VaxFloatG <: VaxFloat 64 end
 
 VaxFloatG(x::UInt64) = reinterpret(VaxFloatG, ltoh(x))
 function VaxFloatG(x::T) where T <: Real
@@ -81,5 +81,8 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
 end
 Base.convert(::Type{T},x::VaxFloatG) where T <: Union{Float16, Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
 
-Base.promote_rule(::Type{T},x::Type{VaxFloatG}) where T <: Union{AbstractFloat, Integer} = Float64
+Base.promote_rule(::Type{T},x::Type{VaxFloatG}) where T <: Union{AbstractVax, Float16, Float32, Float64, Integer} = Float64
+Base.promote_rule(::Type{BigFloat},x::Type{VaxFloatG}) = BigFloat
+
+Base.promote_type(::Type{VaxFloatG}, ::Type{VaxFloatG}) = Float64
 

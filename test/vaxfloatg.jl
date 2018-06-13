@@ -33,8 +33,9 @@
     end
 
     @testset "Promotion..." begin
-        for t in [Int8, Int16, Int32, Int64, Int128, Float16, Float32, Float64]
+        for t in [subtypes(VaxInt); subtypes(VaxFloat); subtypes(Signed); Float16; Float32; Float64]
             @test isa(one(t)*VaxFloatG(1), Float64)
         end
+        @test isa(one(BigFloat)*VaxFloatG(1), BigFloat)
     end
 end
