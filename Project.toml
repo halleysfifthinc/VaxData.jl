@@ -2,6 +2,3 @@ authors = ["Allen Hill <allenofthehills@gmail.com>"]
 name = "VaxData"
 uuid = "cd31b0e8-6739-11e8-0670-d1d5e0f20447"
 version = "0.1.0"
-
-[deps]
-Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
