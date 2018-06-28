@@ -1,4 +1,4 @@
-using VaxData, Compat.Test, Compat.InteractiveUtils
+using VaxData
 
 include("vaxints.jl")
 include("vaxfloatf.jl")
