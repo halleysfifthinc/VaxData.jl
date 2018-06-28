@@ -1,4 +1,4 @@
-using VaxData
+using VaxData, Test, InteractiveUtils
 
 include("vaxints.jl")
 include("vaxfloatf.jl")

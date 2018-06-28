@@ -35,7 +35,7 @@
         @testset "Promotion..." begin
             @test isa(one(Int8)*VaxInt16(1), Int16)
             @test isa(VaxInt16(1)*VaxInt16(1), Int16)
-            for t in [subtypes(AbstractFloat); Int16; Int32; Int64; Int128]
+            for t in [Float16, Float32, Float64, Int16, Int32, Int64, Int128]
                 @test isa(one(t)*VaxInt16(1), t)
             end
         end
@@ -54,7 +54,7 @@
                 @test isa(one(t)*VaxInt32(1), Int32)
             end
 
-            for t in [subtypes(AbstractFloat); Int32; Int64; Int128]
+            for t in [Float16, Float32, Float64, Int32, Int64, Int128]
                 @test isa(one(t)*VaxInt32(1), t)
             end
         end
