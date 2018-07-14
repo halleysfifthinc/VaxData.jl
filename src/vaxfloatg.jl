@@ -4,71 +4,93 @@ primitive type VaxFloatG <: VaxFloat 64 end
 
 VaxFloatG(x::UInt64) = reinterpret(VaxFloatG, ltoh(x))
 function VaxFloatG(x::T) where T <: Real
-    parts = reinterpret(UInt32,[convert(Float64,x)])
-    if ENDIAN_BOM == 0x04030201 
-        vaxpart2 = parts[1]
-        ieeepart1 = parts[2]
+    y = reinterpret(UInt64, convert(Float64, x))
+
+    part1 = y & bmask32
+    part2 = (y >>> 32) & bmask32
+
+    if ENDIAN_BOM === 0x04030201
+        vaxpart2 = part1
+        ieeepart1 = part2
     else
-        vaxpart2 = parts[2]
-        ieeepart1 = parts[1]
+        vaxpart2 = part2
+        ieeepart1 = part1
     end
 
-    if (ieeepart1 & ~SIGN_BIT) == 0
-        vaxpart = UInt32(0)
-    elseif (e = ieeepart1 & IEEE_T_EXPONENT_MASK) == IEEE_T_EXPONENT_MASK
-        throw(InexactError())
+    if ieeepart1 & ~SIGN_BIT_64 === zero(UInt64)
+        vaxpart = zero(UInt64)
+    elseif (e = ieeepart1 & IEEE_T_EXPONENT_MASK) === IEEE_T_EXPONENT_MASK
+        throw(InexactError(:VaxFloatG, VaxFloatG, x))
     else
         e >>>= VAX_G_MANTISSA_SIZE
         m = ieeepart1 & VAX_G_MANTISSA_MASK
 
-        if e == 0
+        if e === zero(UInt64)
             m = (m << 1) | (vaxpart2 >>> 31)
             vaxpart2 <<= 1
-            while (m & VAX_G_HIDDEN_BIT) == 0
+            while m & VAX_G_HIDDEN_BIT === zero(UInt64)
                 m = (m << 1) | (vaxpart2 >>> 31)
                 vaxpart2 <<= 1
-                e -= UInt32(1)
+                e -= one(UInt64)
             end
             m &= VAX_G_MANTISSA_MASK
         end
 
-        if (e += (UNO + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS)) <= 0
-            vaxpart = UInt32(0)
-            vaxpart2 = UInt32(0)
+        if (e += UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) <= 0
+            vaxpart = zero(UInt64)
+            vaxpart2 = zero(UInt64)
         elseif e > (2*VAX_G_EXPONENT_BIAS - 1)
-            throw(InexactError())
+            throw(InexactError(:VaxFloatG, VaxFloatG, x))
         else
-            vaxpart = (ieeepart1 & SIGN_BIT) | (e << VAX_G_MANTISSA_SIZE) | m
+            vaxpart = (ieeepart1 & SIGN_BIT_64) | (e << VAX_G_MANTISSA_SIZE) | m
         end
     end
-    return htol(reinterpret(VaxFloatG, reinterpret(UInt16,[vaxpart, vaxpart2])[[2,1,4,3]])[1])
+
+    vaxpart_1 = vaxpart & bmask16
+    vaxpart_2 = (vaxpart >>> 16) & bmask16
+
+    vaxpart_3 = vaxpart2 & bmask16
+    vaxpart_4 = (vaxpart2 >>> 16) & bmask16
+
+    res = htol((vaxpart_3 << 48) |
+          (vaxpart_4 << 32) |
+          (vaxpart_1 << 16) |
+          vaxpart_2)
+
+    return reinterpret(VaxFloatG, res)
 end
 
 function Base.convert(::Type{Float64}, x::VaxFloatG)
-    parts = reinterpret(UInt16,[ltoh(x)])
-    vaxpart1 = reinterpret(UInt32,parts[[2,1]])[1]
-    vaxpart2 = reinterpret(UInt32,parts[[4,3]])[1]
+    y = reinterpret(UInt64, ltoh(x))
 
-    if (e = vaxpart1 & VAX_G_EXPONENT_MASK) == 0
-        if (vaxpart1 & SIGN_BIT) == SIGN_BIT
-            throw(InexactError())
+    vaxpart_1 = y & bmask16
+    vaxpart_2 = (y >>> 16) & bmask16
+    vaxpart1 = (vaxpart_1 << 16) | vaxpart_2
+
+    vaxpart_3 = (y >>> 32) & bmask16
+    vaxpart_4 = (y >>> 48) & bmask16
+    vaxpart2 = (vaxpart_3 << 16) | vaxpart_4
+
+    if (e = vaxpart1 & VAX_G_EXPONENT_MASK) === zero(UInt64)
+        if vaxpart1 & SIGN_BIT_64 === SIGN_BIT_64
+            throw(InexactError(:convert, Float64, x))
         end
 
-        out1 = UInt32(0)
-        out2 = UInt32(0)
+        out1 = zero(UInt64)
+        out2 = zero(UInt64)
     else
         e >>>= VAX_G_MANTISSA_SIZE
 
-        if (e::UInt32 -= (UNO + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS)) > 0
-            ieeepart1 = vaxpart1  - (UInt32(UNO + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
+        if (e -= UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) > zero(UInt64)
+            ieeepart1 = vaxpart1  - ((UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
             ieeepart2 = vaxpart2
         else
-            vaxpart1 = (vaxpart1 & (SIGN_BIT | VAX_G_MANTISSA_MASK)) | VAX_G_HIDDEN_BIT
-            ieeepart1 = (vaxpart1 & SIGN_BIT) | (UInt32(vaxpart1 & (VAX_G_HIDDEN_BIT | VAX_G_MANTISSA_MASK)) >>> (1 - e))
-            ieeepart2 = (vaxpart1 << (31 + e)) | (vaxpart2 >>> (1-e))
+            vaxpart1 = (vaxpart1 & (SIGN_BIT_64 | VAX_G_MANTISSA_MASK)) | VAX_G_HIDDEN_BIT
+            ieeepart1 = (vaxpart1 & SIGN_BIT_64) | ((vaxpart1 & (VAX_G_HIDDEN_BIT | VAX_G_MANTISSA_MASK)) >>> (1 - e))
+            ieeepart2 = (vaxpart1 << (31 + e)) | (vaxpart2 >>> (1 - e))
         end
 
-        if ENDIAN_BOM == 0x04030201
+        if ENDIAN_BOM === 0x04030201
             out1 = ieeepart2
             out2 = ieeepart1
         else
@@ -77,7 +99,9 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
         end
     end
 
-    return reinterpret(Float64,[out1,out2])[1]
+    res = (out2 << 32) | out1
+
+    return reinterpret(Float64,res)
 end
 Base.convert(::Type{T},x::VaxFloatG) where T <: Union{Float16, Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
 
