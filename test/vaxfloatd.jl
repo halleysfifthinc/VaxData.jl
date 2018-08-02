@@ -38,5 +38,18 @@
         end
         @test isa(one(BigFloat)*VaxFloatD(1), BigFloat)
     end
+
+    @testset "Edge cases" begin
+        # Reserved Vax floating point operand
+        @test_throws InexactError convert(Float64, VaxFloatD(UInt64(0x8000)))
+
+        # Inf and NaN should error too
+        @test_throws InexactError VaxFloatD(Inf64)
+        @test_throws InexactError VaxFloatD(-Inf64)
+        @test_throws InexactError VaxFloatD(NaN64)
+
+        # Both IEEE zeros should be converted to Vax true zero
+        @test VaxFloatD(-0.0) === VaxFloatD(0.0) === VaxFloatD(zero(UInt64))
+    end
 end
 
