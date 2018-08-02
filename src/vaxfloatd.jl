@@ -36,8 +36,7 @@ function VaxFloatD(x::T) where T <: Real
         end
 
         if (e += UNO64 + VAX_D_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) <= 0
-            vaxpart = zero(UInt64)
-            vaxpart2 = zero(UInt64)
+            return zero(VaxFloatD)
         elseif e > (2*VAX_D_EXPONENT_BIAS - 1)
             throw(InexactError(:VaxFloatD, VaxFloatD, x))
         else
@@ -79,8 +78,7 @@ function Base.convert(::Type{Float64}, x::VaxFloatD)
             throw(InexactError(:convert, Float64, x))
         end
 
-        out1 = zero(UInt64)
-        out2 = zero(UInt64)
+        return zero(Float64)
     else
         ieeepart1 = ((vaxpart1 & SIGN_BIT_64) |
                      ((vaxpart1 & ~SIGN_BIT_64) >>>
@@ -103,6 +101,9 @@ function Base.convert(::Type{Float64}, x::VaxFloatD)
     return reinterpret(Float64,res)
 end
 Base.convert(::Type{T},x::VaxFloatD) where T <: Union{Float16,Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
+
+Base.zero(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000000)
+Base.one(::Type{VaxFloatD}) = VaxFloatD(0x0000000000004080)
 
 Base.promote_rule(::Type{T},x::Type{VaxFloatD}) where T <: Union{AbstractVax, Float16, Float32, Float64, Integer} = Float64
 Base.promote_rule(::Type{BigFloat},x::Type{VaxFloatD}) = BigFloat

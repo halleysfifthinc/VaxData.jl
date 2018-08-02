@@ -37,8 +37,7 @@ function VaxFloatG(x::T) where T <: Real
         end
 
         if (e += UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) <= 0
-            vaxpart = zero(UInt64)
-            vaxpart2 = zero(UInt64)
+            return zero(VaxFloatG)
         elseif e > (2*VAX_G_EXPONENT_BIAS - 1)
             throw(InexactError(:VaxFloatG, VaxFloatG, x))
         else
@@ -76,8 +75,7 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
             throw(InexactError(:convert, Float64, x))
         end
 
-        out1 = zero(UInt64)
-        out2 = zero(UInt64)
+        return zero(Float64)
     else
         e >>>= VAX_G_MANTISSA_SIZE
 
@@ -104,6 +102,9 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
     return reinterpret(Float64,res)
 end
 Base.convert(::Type{T},x::VaxFloatG) where T <: Union{Float16, Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
+
+Base.zero(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000000)
+Base.one(::Type{VaxFloatG}) = VaxFloatG(0x0000000000004010)
 
 Base.promote_rule(::Type{T},x::Type{VaxFloatG}) where T <: Union{AbstractVax, Float16, Float32, Float64, Integer} = Float64
 Base.promote_rule(::Type{BigFloat},x::Type{VaxFloatG}) = BigFloat

@@ -7,7 +7,7 @@ function VaxFloatF(x::T) where T <: Real
     ieeepart1 = reinterpret(UInt32, convert(Float32, x))
 
     if ieeepart1 & ~SIGN_BIT === zero(UInt32)
-        vaxpart = UInt32(0)
+        return zero(VaxFloatF)
     elseif (e = ieeepart1 & IEEE_S_EXPONENT_MASK) === IEEE_S_EXPONENT_MASK
         throw(InexactError(:VaxFloatF, VaxFloatF, x))
     else
@@ -24,7 +24,7 @@ function VaxFloatF(x::T) where T <: Real
         end
 
         if (e += UNO + VAX_F_EXPONENT_BIAS - IEEE_S_EXPONENT_BIAS) <= 0
-            vaxpart = UInt32(0)
+            return zero(VaxFloatF)
         elseif e > (2*VAX_F_EXPONENT_BIAS - 1)
             throw(InexactError(:VaxFloatF, VaxFloatF, x))
         else
@@ -48,9 +48,11 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
 
     if (e = vaxpart1 & VAX_F_EXPONENT_MASK) === zero(UInt32)
         if vaxpart1 & SIGN_BIT === SIGN_BIT
+            # Reserved floating-point reserved operand
             throw(InexactError(:convert, Float32, x))
         end
-        return Float32(0)
+
+        return zero(Float32)
     else
         e >>>= VAX_F_MANTISSA_SIZE
 
@@ -59,6 +61,7 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
                 (( UNO + VAX_F_EXPONENT_BIAS - IEEE_S_EXPONENT_BIAS ) <<
                     IEEE_S_MANTISSA_SIZE)
         else
+            # out will be a subnormal
             out = (vaxpart1 & SIGN_BIT) |
                 ((VAX_F_HIDDEN_BIT | (vaxpart1 & VAX_F_MANTISSA_MASK)) >>> (UNO - e))
         end
@@ -67,6 +70,9 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
     return reinterpret(Float32, out)
 end
 Base.convert(::Type{T},x::VaxFloatF) where T <: Union{Float16, Float64, BigFloat, Integer} = convert(T,convert(Float32,x))
+
+Base.zero(::Type{VaxFloatF}) = VaxFloatF(0x00000000)
+Base.one(::Type{VaxFloatF}) = VaxFloatF(0x00004080)
 
 Base.promote_rule(::Type{T},::Type{VaxFloatF}) where T <: Union{AbstractVax, Float16, Float32, Float64, Integer} = (sizeof(T) <= 4) ? Float32 : Float64
 Base.promote_rule(::Type{BigFloat},::Type{VaxFloatF}) = BigFloat
