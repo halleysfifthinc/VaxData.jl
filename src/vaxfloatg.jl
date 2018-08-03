@@ -93,7 +93,6 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
         end
 
         # Dirty zero
-        println("dirty")
         return zero(Float64)
     else
         e >>>= VAX_G_MANTISSA_SIZE
