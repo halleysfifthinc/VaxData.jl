@@ -51,6 +51,9 @@
         # Both IEEE zeros should be converted to Vax true zero
         @test VaxFloatG(-0.0) === VaxFloatG(0.0) === VaxFloatG(zero(UInt64))
 
+        # Dirty zero
+        @test convert(Float64, VaxFloatG(UInt64(0x08))) === zero(Float64)
+
         # Numbers smaller than floatmin(VaxFloatG) should underflow
         @test VaxFloatG(prevfloat(convert(Float64, floatmin(VaxFloatG)))) === zero(VaxFloatG)
         @test VaxFloatG(convert(Float64, floatmin(VaxFloatG))) === floatmin(VaxFloatG)
