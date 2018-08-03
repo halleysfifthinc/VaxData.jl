@@ -53,6 +53,14 @@
         @test_throws InexactError VaxFloatF(NaN32)
 
         # Both IEEE zeros should be converted to Vax true zero
-        @test VaxFloatF(-0.0f0) === VaxFloatF(0.0f0) === VaxFloatF(zero(UInt32))
+        @test VaxFloatF(-0.0f0) === VaxFloatF(0.0f0) === zero(VaxFloatF)
+
+        # Numbers smaller than floatmin(VaxFloatF) should underflow
+        @test VaxFloatF(prevfloat(convert(Float32, floatmin(VaxFloatF)))) === zero(VaxFloatF)
+        @test VaxFloatF(convert(Float32, floatmin(VaxFloatF))) === floatmin(VaxFloatF)
+
+        # Numbers larger than floatmax(VaxFloatF) should error
+        @test_throws InexactError VaxFloatF(nextfloat(convert(Float32, floatmax(VaxFloatF))))
+        @test VaxFloatF(convert(Float32, floatmax(VaxFloatF))) === floatmax(VaxFloatF)
     end
 end

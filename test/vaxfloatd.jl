@@ -49,7 +49,17 @@
         @test_throws InexactError VaxFloatD(NaN64)
 
         # Both IEEE zeros should be converted to Vax true zero
-        @test VaxFloatD(-0.0) === VaxFloatD(0.0) === VaxFloatD(zero(UInt64))
+        @test VaxFloatD(-0.0) === VaxFloatD(0.0) === zero(VaxFloatD)
+
+        # Numbers smaller than floatmin(VaxFloatD) should underflow
+        @test VaxFloatD(prevfloat(convert(Float64, floatmin(VaxFloatD)))) === zero(VaxFloatD)
+        @test VaxFloatD(convert(Float64, floatmin(VaxFloatD))) === floatmin(VaxFloatD)
+
+        # Numbers larger than floatmax(VaxFloatD) should error
+        @test_throws InexactError VaxFloatD(nextfloat(convert(Float64, floatmax(VaxFloatD))))
+        
+        # Because the D Float as more precision, the conversion to Float64 and back to D Float will not be circular
+        # @test VaxFloatD(convert(Float64, floatmax(VaxFloatD))) === floatmax(VaxFloatD)
     end
 end
 
