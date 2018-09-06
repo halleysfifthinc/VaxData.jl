@@ -18,4 +18,4 @@ notifications:
 ## uncomment and modify the following lines to manually install system packages
 after_success:
   # push coverage results to Codecov
-  - julia -e 'using Pkg, VaxData; cd(pathof(VaxData)); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'using Pkg, VaxData; cd(dirname(dirname(pathof(VaxData)))); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
