@@ -6,4 +6,6 @@ coverage:
     patch:
       default:
         informational: true
+ignore:
+    - "src/promote.jl" # Promotion is in fact thoroughly tested, but coverage doesn't catch it
 comment: false
