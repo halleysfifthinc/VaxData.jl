@@ -89,8 +89,3 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
 end
 Base.convert(::Type{T},x::VaxFloatF) where T <: Union{Float16, Float64, BigFloat, Integer} = convert(T,convert(Float32,x))
 
-Base.promote_rule(::Type{T},::Type{VaxFloatF}) where T <: Union{AbstractVax, Float16, Float32, Float64, Integer} = (sizeof(T) <= 4) ? Float32 : Float64
-Base.promote_rule(::Type{BigFloat},::Type{VaxFloatF}) = BigFloat
-
-Base.promote_type(::Type{VaxFloatF}, ::Type{VaxFloatF}) = Float32
-
