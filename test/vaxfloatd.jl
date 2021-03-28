@@ -2,14 +2,14 @@
     d8_vax = [  0x0000000000004080,
                 0x000000000000c080,
                 0x0000000000004160,
-                0x000000000000c160, 
-                0x68c0a2210fda4149, 
-                0x68c0a2210fdac149, 
-                0x48d81abbbdc27df0, 
-                0x48d81abbbdc2fdf0, 
-                0x5c7814541cea0308, 
-                0x5c7814541cea8308, 
-                0xcee814620652409e, 
+                0x000000000000c160,
+                0x68c0a2210fda4149,
+                0x68c0a2210fdac149,
+                0x48d81abbbdc27df0,
+                0x48d81abbbdc2fdf0,
+                0x5c7814541cea0308,
+                0x5c7814541cea8308,
+                0xcee814620652409e,
                 0xcee814620652c09e]
 
     d8_ieee = Array{Float64}([  one(Float64),
@@ -33,9 +33,10 @@
     end
 
     @testset "Promotion..." begin
-        for t in [subtypes(VaxInt); subtypes(VaxFloat); subtypes(Signed); Float16; Float32; Float64]
+        for t in [subtypes(VaxInt); subtypes(VaxFloat); Int8; Int16; Int32; Int64; Int128; Float16; Float32; Float64]
             @test isa(one(t)*VaxFloatD(1), Float64)
         end
+        @test isa(one(BigInt)*VaxFloatD(1), BigFloat)
         @test isa(one(BigFloat)*VaxFloatD(1), BigFloat)
     end
 
@@ -60,7 +61,7 @@
 
         # Numbers larger than floatmax(VaxFloatD) should error
         @test_throws InexactError VaxFloatD(nextfloat(convert(Float64, floatmax(VaxFloatD))))
-        
+
         # Because the D Float as more precision, the conversion to Float64 and back to D Float will not be circular
         # @test VaxFloatD(convert(Float64, floatmax(VaxFloatD))) === floatmax(VaxFloatD)
     end
