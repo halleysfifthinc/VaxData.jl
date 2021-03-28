@@ -1,6 +1,6 @@
 # VaxData
 
-[![Build Status](https://travis-ci.org/halleysfifthinc/VaxData.jl.svg?branch=master)](https://travis-ci.org/halleysfifthinc/VaxData.jl)
+[![CI](https://github.com/halleysfifthinc/VaxData.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/halleysfifthinc/VaxData.jl/actions/workflows/CI.yml)
 [![codecov.io](http://codecov.io/github/halleysfifthinc/VaxData.jl/coverage.svg?branch=master)](http://codecov.io/github/halleysfifthinc/VaxData.jl?branch=master)
 
 VaxData.jl is a direct port to Julia from [libvaxdata](https://pubs.usgs.gov/of/2005/1424/) [^1]. See [this report](https://pubs.usgs.gov/of/2005/1424/of2005-1424_v1.2.pdf) for an in-depth review of the underlying structure and differences between VAX data types and IEEE types.
