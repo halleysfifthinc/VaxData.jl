@@ -1,8 +1,11 @@
 export VaxFloatG
 
-primitive type VaxFloatG <: VaxFloat 64 end
+struct VaxFloatG <: VaxFloat
+    x::UInt64
 
-VaxFloatG(x::UInt64) = reinterpret(VaxFloatG, ltoh(x))
+    VaxFloatG(x::UInt64) = new(ltoh(x))
+end
+
 function VaxFloatG(x::T) where T <: Real
     y = reinterpret(UInt64, convert(Float64, x))
 
@@ -63,7 +66,7 @@ function VaxFloatG(x::T) where T <: Real
           (vaxpart_1 << 16) |
           vaxpart_2)
 
-    return reinterpret(VaxFloatG, res)
+    return VaxFloatG(res)
 end
 
 Base.typemax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
@@ -75,7 +78,7 @@ Base.zero(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000000)
 Base.one(::Type{VaxFloatG}) = VaxFloatG(0x0000000000004010)
 
 function Base.convert(::Type{Float64}, x::VaxFloatG)
-    y = reinterpret(UInt64, ltoh(x))
+    y = ltoh(x.x)
 
     vaxpart_1 = y & bmask16
     vaxpart_2 = (y >>> 16) & bmask16
@@ -119,7 +122,10 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
 
     res = (out2 << 32) | out1
 
-    return reinterpret(Float64,res)
+    return reinterpret(Float64, res)
 end
-Base.convert(::Type{T},x::VaxFloatG) where T <: Union{Float16, Float32, BigFloat, Integer} = convert(T,convert(Float64,x))
+
+function Base.convert(::Type{T}, x::VaxFloatG) where T <: Union{Float16,Float32,BigFloat,Integer}
+    return convert(T, convert(Float64, x))
+end
 
