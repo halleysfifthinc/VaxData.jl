@@ -38,6 +38,18 @@
         end
         @test isa(one(BigInt)*VaxFloatD(1), BigFloat)
         @test isa(one(BigFloat)*VaxFloatD(1), BigFloat)
+
+        un = one(VaxFloatD)
+        @test promote(un, un, un) == (1.0, 1.0, 1.0)
+        @test promote(un, un, un, un) == (1.0, 1.0, 1.0, 1.0)
+    end
+
+    @testset "Number definitions" begin
+        @test floatmax(VaxFloatD) == typemax(VaxFloatD)
+        @test floatmin(VaxFloatD) == typemin(VaxFloatD)
+
+        @test zero(VaxFloatD) == 0
+        @test one(VaxFloatD) == 1
     end
 
     @testset "Edge cases" begin
@@ -64,6 +76,12 @@
 
         # Because the D Float as more precision, the conversion to Float64 and back to D Float will not be circular
         # @test VaxFloatD(convert(Float64, floatmax(VaxFloatD))) === floatmax(VaxFloatD)
+    end
+
+    @testset "IO" begin
+        io = IOBuffer(reinterpret(UInt8, ones(VaxFloatD, 4)))
+        @test read(io, VaxFloatD) === one(VaxFloatD)
+        @test read!(io, Vector{VaxFloatD}(undef, 3)) == ones(VaxFloatD, 3)
     end
 end
 

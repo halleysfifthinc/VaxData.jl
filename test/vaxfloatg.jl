@@ -38,6 +38,18 @@
         end
         @test isa(one(BigInt)*VaxFloatG(1), BigFloat)
         @test isa(one(BigFloat)*VaxFloatG(1), BigFloat)
+
+        un = one(VaxFloatG)
+        @test promote(un, un, un) == (1.0, 1.0, 1.0)
+        @test promote(un, un, un, un) == (1.0, 1.0, 1.0, 1.0)
+    end
+
+    @testset "Number definitions" begin
+        @test floatmax(VaxFloatG) == typemax(VaxFloatG)
+        @test floatmin(VaxFloatG) == typemin(VaxFloatG)
+
+        @test zero(VaxFloatG) == 0
+        @test one(VaxFloatG) == 1
     end
 
     @testset "Edge cases" begin
@@ -62,5 +74,11 @@
         # Numbers larger than floatmax(VaxFloatG) should error
         @test_throws InexactError VaxFloatG(nextfloat(convert(Float64, floatmax(VaxFloatG))))
         @test VaxFloatG(convert(Float64, floatmax(VaxFloatG))) === floatmax(VaxFloatG)
+    end
+
+    @testset "IO" begin
+        io = IOBuffer(reinterpret(UInt8, ones(VaxFloatG, 4)))
+        @test read(io, VaxFloatG) === one(VaxFloatG)
+        @test read!(io, Vector{VaxFloatG}(undef, 3)) == ones(VaxFloatG, 3)
     end
 end
