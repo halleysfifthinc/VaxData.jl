@@ -15,7 +15,9 @@ include("vaxfloatd.jl")
 include("vaxfloatg.jl")
 include("promote.jl")
 
-function Base.read(s::IO, T::Union{Type{VaxInt16},Type{VaxInt32},Type{VaxFloatF},Type{VaxFloatD},Type{VaxFloatG}})
+const VaxTypes = Union{VaxInt16,VaxInt32,VaxFloatF,VaxFloatD,VaxFloatG}
+
+function Base.read(s::IO, ::Type{T}) where T <: VaxTypes
     return read!(s, Ref{T}(0))[]::T
 end
 
