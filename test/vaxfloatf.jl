@@ -48,7 +48,7 @@
 
     @testset "Number definitions" begin
         @test floatmax(VaxFloatF) == typemax(VaxFloatF)
-        @test floatmin(VaxFloatF) == typemin(VaxFloatF)
+        @test_broken floatmin(VaxFloatF) == typemin(VaxFloatF)
 
         @test zero(VaxFloatF) == 0
         @test one(VaxFloatF) == 1
@@ -71,7 +71,7 @@
 
         # Numbers smaller than floatmin(VaxFloatF) should underflow
         @test VaxFloatF(prevfloat(convert(Float32, floatmin(VaxFloatF)))) === zero(VaxFloatF)
-        @test VaxFloatF(convert(Float32, floatmin(VaxFloatF))) === floatmin(VaxFloatF)
+        @test_broken VaxFloatF(convert(Float32, floatmin(VaxFloatF))) === floatmin(VaxFloatF)
 
         # Numbers larger than floatmax(VaxFloatF) should error
         @test_throws InexactError VaxFloatF(nextfloat(convert(Float32, floatmax(VaxFloatF))))

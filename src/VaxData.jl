@@ -6,7 +6,8 @@ abstract type AbstractVax <: Real end
 abstract type VaxInt <: AbstractVax end
 abstract type VaxFloat <: AbstractVax end
 
-import Base: IEEEFloat
+import Base: IEEEFloat, significand_bits, significand_mask, exponent_bits, exponent_mask,
+    exponent_bias, floatmin, floatmax, typemin, typemax, zero, one, uinttype
 
 include("constants.jl")
 include("vaxints.jl")

@@ -72,14 +72,6 @@ function VaxFloatD(x::T) where T <: Real
     return VaxFloatD(res)
 end
 
-Base.typemax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
-Base.floatmax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
-Base.typemin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000080)
-Base.floatmin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000080)
-
-Base.zero(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000000)
-Base.one(::Type{VaxFloatD}) = VaxFloatD(0x0000000000004080)
-
 function Base.convert(::Type{Float64}, x::VaxFloatD)
     y = ltoh(x.x)
 
@@ -124,4 +116,20 @@ end
 function Base.convert(::Type{T}, x::VaxFloatD) where T <: Union{Float16,Float32,BigFloat,Integer}
     return convert(T, convert(Float64, x))
 end
+
+floatmax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
+floatmin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000010000)
+typemax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
+typemin(::Type{VaxFloatD}) = VaxFloatD(typemax(UInt64))
+
+zero(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000000)
+one(::Type{VaxFloatD}) = VaxFloatD(0x0000000000004080)
+
+uinttype(::Type{VaxFloatD}) = UInt64
+
+exponent_bits(::Type{VaxFloatD}) = VAX_D_EXPONENT_SIZE
+exponent_mask(::Type{VaxFloatD}) = VAX_D_EXPONENT_MASK
+exponent_bias(::Type{VaxFloatD}) = VAX_D_EXPONENT_BIAS
+significand_bits(::Type{VaxFloatD}) = VAX_D_MANTISSA_SIZE
+significand_mask(::Type{VaxFloatD}) = VAX_D_MANTISSA_MASK
 
