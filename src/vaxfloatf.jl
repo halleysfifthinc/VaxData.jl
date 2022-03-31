@@ -81,8 +81,13 @@ function convert(::Type{Float32}, x::VaxFloatF)
     return reinterpret(Float32, out)
 end
 
-function convert(::Type{T}, x::VaxFloatF) where {T<:Union{Float16,Float64,BigFloat,Integer}}
+function convert(::Type{T}, x::VaxFloatF) where {T<:Union{Float16,Float64,Integer}}
     return convert(T, convert(Float32, x))
+end
+
+macro vaxf_str(str)
+    T = VaxFloatF
+    return convert(T, BigFloat(str; precision=significand_bits(T)+1))
 end
 
 floatmax(::Type{VaxFloatF}) = VaxFloatF(0xffff7fff)
