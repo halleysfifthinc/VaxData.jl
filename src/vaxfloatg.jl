@@ -130,8 +130,8 @@ one(::Type{VaxFloatG}) = VaxFloatG(0x0000000000004010)
 uinttype(::Type{VaxFloatG}) = UInt64
 
 exponent_bits(::Type{VaxFloatG}) = VAX_G_EXPONENT_SIZE
-exponent_mask(::Type{VaxFloatG}) = VAX_G_EXPONENT_MASK
+exponent_mask(::Type{VaxFloatG}) = UInt64(0x00007ff0)
 exponent_bias(::Type{VaxFloatG}) = VAX_G_EXPONENT_BIAS
 significand_bits(::Type{VaxFloatG}) = VAX_G_MANTISSA_SIZE
-significand_mask(::Type{VaxFloatG}) = VAX_G_MANTISSA_MASK
+significand_mask(::Type{VaxFloatG}) = 0xffffffffffff001f
 
