@@ -1,7 +1,7 @@
 # Define common arithmetic operations (default for two of the same unknown number type is to no-op error)
 # Promotion rules are such that the promotion will always be to a valid IEEE number type,
 # even in the case of two identical AbstractVax types
-for op in [:+, :-, :*, :/, :^, :<=]
+for op in [:+, :-, :*, :/, :^, :<, :<=]
     @eval(begin
         Base.$op(x::T, y::T) where {T<:AbstractVax} = ($op)(promote(x,y)...)
     end)
@@ -14,8 +14,22 @@ function Base.:<(x::T,y::T) where {T<:VaxFloat}
     if signbit(x) == signbit(y)
         return (swap16bword(x.x) & (typemax(uinttype(T)) >> 1)) < (swap16bword(y.x) & (typemax(uinttype(T)) >> 1))
     else
-        return signbit(x) > signbit(y)
+        return signbit(y) < signbit(x)
     end
+end
+
+function Base.:<=(x::T,y::T) where {T<:VaxFloat}
+    if signbit(x) == signbit(y)
+        return (swap16bword(x.x) & (typemax(uinttype(T)) >> 1)) <= (swap16bword(y.x) & (typemax(uinttype(T)) >> 1))
+    else
+        return signbit(y) < signbit(x)
+    end
+end
+
+function exponent(v::VaxFloat)
+    e = v.x & exponent_mask(typeof(v))
+    e >>= (15 - exponent_bits(typeof(v)))
+    return Int(e) - exponent_bias(typeof(v))
 end
 
 # copied and slightly modified from Base
