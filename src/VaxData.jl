@@ -24,4 +24,17 @@ function read(s::IO, ::Type{T}) where {T<:VaxTypes}
     return read!(s, Ref{T}(0))[]::T
 end
 
+export swap16bword
+@inline function swap16bword(x::Union{UInt32,Int32})
+    part1 = x & typemax(UInt16)
+    part2 = (x >>> 16) & typemax(UInt16)
+    part1 = (part1 << 16) | part2
+end
+
+@inline function swap16bword(x::Union{UInt64,Int64})
+    part1 = UInt64(swap16bword(UInt32(x & typemax(UInt32))))
+    part2 = UInt64(swap16bword(UInt32((x >>> 32) & typemax(UInt32))))
+    part1 = (part2 << 32) | part1
+end
+
 end # module
