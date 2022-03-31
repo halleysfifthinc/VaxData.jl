@@ -45,7 +45,7 @@ function VaxFloatG(x::T) where {T<:Real}
         if e <= zero(Int64)
             # Silent underflow
             return zero(VaxFloatG)
-        elseif e > (2*VAX_G_EXPONENT_BIAS - 1)
+        elseif e > (2 * VAX_G_EXPONENT_BIAS - 1)
             # Overflow
             throw(InexactError(:VaxFloatG, VaxFloatG, x))
         else
@@ -92,7 +92,7 @@ function convert(::Type{Float64}, x::VaxFloatG)
 
         e -= one(Int64) + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS
         if e > zero(Int64)
-            ieeepart1 = vaxpart1  - ((UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
+            ieeepart1 = vaxpart1 - ((UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
             ieeepart2 = vaxpart2
         else
             # Subnormal result
@@ -120,7 +120,7 @@ function convert(::Type{T}, x::VaxFloatG) where {T<:Union{Float16,Float32,BigFlo
 end
 
 floatmax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
-floatmin(::Type{VaxFloatG}) = VaxFloatG(0x0000000000010000)
+floatmin(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000010)
 typemax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
 typemin(::Type{VaxFloatG}) = VaxFloatG(typemax(UInt64))
 
