@@ -6,8 +6,9 @@ abstract type AbstractVax <: Real end
 abstract type VaxInt <: AbstractVax end
 abstract type VaxFloat <: AbstractVax end
 
-import Base: IEEEFloat, significand_bits, significand_mask, exponent_bits, exponent_mask,
-    exponent_bias, floatmin, floatmax, typemin, typemax, zero, one, uinttype
+import Base: IEEEFloat, convert, read, significand_bits, significand_mask, exponent_bits,
+    exponent_mask, exponent_bias, floatmin, floatmax, typemin, typemax, zero, one, uinttype
+
 
 include("constants.jl")
 include("vaxints.jl")
@@ -18,7 +19,7 @@ include("promote.jl")
 
 const VaxTypes = Union{VaxInt16,VaxInt32,VaxFloatF,VaxFloatD,VaxFloatG}
 
-function Base.read(s::IO, ::Type{T}) where T <: VaxTypes
+function read(s::IO, ::Type{T}) where {T<:VaxTypes}
     return read!(s, Ref{T}(0))[]::T
 end
 

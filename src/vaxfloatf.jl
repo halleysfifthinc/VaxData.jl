@@ -1,12 +1,10 @@
-export VaxFloatF
-
 struct VaxFloatF <: VaxFloat
     x::UInt32
 
     VaxFloatF(x::UInt32) = new(ltoh(x))
 end
 
-function VaxFloatF(x::T) where T <: Real
+function VaxFloatF(x::T) where {T<:Real}
     ieeepart1 = reinterpret(UInt32, convert(Float32, x))
     e = reinterpret(Int32, ieeepart1 & IEEE_S_EXPONENT_MASK)
 
@@ -49,7 +47,7 @@ function VaxFloatF(x::T) where T <: Real
     return VaxFloatF(vaxpart1)
 end
 
-function Base.convert(::Type{Float32}, x::VaxFloatF)
+function convert(::Type{Float32}, x::VaxFloatF)
     y = x.x
     vaxpart1 = y & bmask16
     vaxpart2 = (y >>> 16) & bmask16
@@ -83,7 +81,7 @@ function Base.convert(::Type{Float32}, x::VaxFloatF)
     return reinterpret(Float32, out)
 end
 
-function Base.convert(::Type{T}, x::VaxFloatF) where T <: Union{Float16,Float64,BigFloat,Integer}
+function convert(::Type{T}, x::VaxFloatF) where {T<:Union{Float16,Float64,BigFloat,Integer}}
     return convert(T, convert(Float32, x))
 end
 
