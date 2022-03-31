@@ -19,7 +19,7 @@ function Base.:<(x::T,y::T) where {T<:VaxFloat}
 end
 
 # copied and slightly modified from Base
-function Base.nextfloat(f::VaxFloat, d::Integer)
+function nextfloat(f::VaxFloat, d::Integer)
     F = typeof(f)
     fumax = swap16bword(typemax(f).x)
     U = typeof(fumax)
@@ -56,8 +56,8 @@ function Base.nextfloat(f::VaxFloat, d::Integer)
     end
 
     # Jump past the VAX FP reserved operand (sign = 1, exp = 0, mant ≠ 0)
-    dz_hi = ~(exponent_mask(F) % U)
-    dz_lo = dz_hi - significand_mask(F)
+    dz_hi = ~(swap16bword(exponent_mask(F)) % U)
+    dz_lo = dz_hi - swap16bword(significand_mask(F))
     if dz_lo ≤ fu ≤ dz_hi
         return dneg ? nextfloat(F(0x00008080), d + 1) :
                       nextfloat(zero(F), d - 1)
@@ -66,6 +66,7 @@ function Base.nextfloat(f::VaxFloat, d::Integer)
     return F(swap16bword(fu))
 end
 
-Base.nextfloat(f::VaxFloat) = nextfloat(f,1)
-Base.prevfloat(f::VaxFloat) = nextfloat(f,-1)
-Base.prevfloat(f::VaxFloat, d::Integer) = nextfloat(f, -d)
+nextfloat(f::VaxFloat) = nextfloat(f,1)
+prevfloat(f::VaxFloat) = nextfloat(f,-1)
+prevfloat(f::VaxFloat, d::Integer) = nextfloat(f, -d)
+
