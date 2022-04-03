@@ -25,6 +25,26 @@
                                 1.2345678901234500000000000000,
                                 -1.2345678901234500000000000000 ])
 
+    @testset "Basic operators" begin
+        @test signbit(zero(VaxFloatG)) == false
+        @test signbit(one(VaxFloatG)) == false
+        @test signbit(-one(VaxFloatG)) == true
+        @test signbit(-(-one(VaxFloatG))) == false
+
+        @test zero(VaxFloatG) < one(VaxFloatG)
+        @test !(one(VaxFloatG) < one(VaxFloatG))
+        @test !(one(VaxFloatG) < zero(VaxFloatG))
+        @test one(VaxFloatG) <= one(VaxFloatG)
+
+        @test nextfloat(typemax(VaxFloatG)) == typemax(VaxFloatG)
+        @test prevfloat(typemin(VaxFloatG)) == typemin(VaxFloatG)
+        @test -prevfloat(-one(VaxFloatG)) == nextfloat(one(VaxFloatG))
+        @test nextfloat(zero(VaxFloatG)) == floatmin(VaxFloatG)
+        @test prevfloat(floatmin(VaxFloatG)) == zero(VaxFloatG)
+        @test prevfloat(zero(VaxFloatG)) == -floatmin(VaxFloatG)
+        @test nextfloat(-floatmin(VaxFloatG)) == zero(VaxFloatG)
+    end
+
     @testset "Conversion..." begin
         for (vax, ieee) in zip(g8_vax, g8_ieee)
             @test VaxFloatG(vax) == VaxFloatG(ieee)
