@@ -1,7 +1,7 @@
 struct VaxFloatG <: VaxFloat
     x::UInt64
 
-    VaxFloatG(x::UInt64) = new(ltoh(x))
+    VaxFloatG(x::Union{UInt32,UInt64}) = new(UInt64(ltoh(x)))
 end
 
 function VaxFloatG(x::T) where {T<:Real}
