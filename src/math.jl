@@ -34,6 +34,9 @@ end
 
 # copied and slightly modified from Base
 function nextfloat(f::VaxFloat, d::Integer)
+    d == 0 && return f
+    f == typemax(f) && (d > 0) && return typemax(f)
+    f == typemin(f) && (d < 0) && return typemin(f)
     F = typeof(f)
     fumax = swap16bword(typemax(f).x)
     U = typeof(fumax)
@@ -73,8 +76,13 @@ function nextfloat(f::VaxFloat, d::Integer)
     dz_hi = ~(swap16bword(exponent_mask(F)) % U)
     dz_lo = dz_hi - swap16bword(significand_mask(F))
     if dz_lo ≤ fu ≤ dz_hi
-        return dneg ? nextfloat(F(0x00008080), d + 1) :
+        @debug "reserved op", dneg
+        return dneg ? nextfloat(F(U(0x00008000) | (0x1 << (15 - exponent_bits(F)))), d + 1) :
                       nextfloat(zero(F), d - 1)
+    elseif fu ≤ swap16bword(significand_mask(F))
+        @debug "dirty zero", dneg
+        return dneg ? nextfloat(zero(F), d + 1) :
+                      nextfloat(floatmin(F), d - 1)
     end
 
     return F(swap16bword(fu))
