@@ -81,4 +81,18 @@ end
     part1 = (part2 << 32) | part1
 end
 
+function Base.show(io::IO, x::VaxFloat)
+    T = typeof(x)
+    letter = (T === VaxFloatF) ? 'f' :
+             (T === VaxFloatD) ? 'd' : 'g'
+    print(io, "vax", letter)
+    if T === VaxFloatF
+        show(io, strip(repr(convert(Float32, x); context=IOContext(io)), ['f', '0']))
+    else
+        show(io, repr(convert(Float64, x); context=IOContext(io)))
+    end
+
+    return nothing
+end
+
 end # module
