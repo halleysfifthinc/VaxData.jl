@@ -73,13 +73,13 @@ export swap16bword
 @inline function swap16bword(x::Union{UInt32,Int32})
     part1 = x & typemax(UInt16)
     part2 = (x >>> 16) & typemax(UInt16)
-    part1 = (part1 << 16) | part2
+    return (part1 << 16) | part2
 end
 
 @inline function swap16bword(x::Union{UInt64,Int64})
     part1 = UInt64(swap16bword(UInt32(x & typemax(UInt32))))
     part2 = UInt64(swap16bword(UInt32((x >>> 32) & typemax(UInt32))))
-    part1 = (part2 << 32) | part1
+    return (part1 << 32) | part2
 end
 
 function Base.show(io::IO, x::VaxFloat)
