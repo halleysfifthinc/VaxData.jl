@@ -86,8 +86,9 @@ function Base.show(io::IO, x::VaxFloat)
     letter = (T === VaxFloatF) ? 'f' :
              (T === VaxFloatD) ? 'd' : 'g'
     print(io, "vax", letter)
+
     if T === VaxFloatF
-        show(io, strip(repr(convert(Float32, x); context=IOContext(io)), ['f', '0']))
+        show(io, replace(repr(convert(Float32, x); context=IOContext(io)), "f" => "e"))
     else
         show(io, repr(convert(Float64, x); context=IOContext(io)))
     end
