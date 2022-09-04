@@ -138,5 +138,5 @@ exponent_bits(::Type{VaxFloatG}) = VAX_G_EXPONENT_SIZE
 exponent_mask(::Type{VaxFloatG}) = UInt64(0x00007ff0)
 exponent_bias(::Type{VaxFloatG}) = VAX_G_EXPONENT_BIAS
 significand_bits(::Type{VaxFloatG}) = 64 - 1 - VAX_G_EXPONENT_SIZE
-significand_mask(::Type{VaxFloatG}) = 0xffffffffffff001f
+significand_mask(::Type{VaxFloatG}) = 0xffffffffffff000f
 
