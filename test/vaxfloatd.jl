@@ -50,6 +50,13 @@
             @test VaxFloatD(vax) == VaxFloatD(ieee)
             @test convert(Float64, VaxFloatD(vax)) == ieee
         end
+
+        @test convert(VaxFloatD, big"1.0") == one(VaxFloatD)
+        @test convert(VaxFloatD, big"-1.0") == -one(VaxFloatD)
+        bigpi = BigFloat(π; precision=Base.significand_bits(VaxFloatD)+1)
+        bige = BigFloat(ℯ; precision=Base.significand_bits(VaxFloatD)+1)
+        @test convert(BigFloat, convert(VaxFloatD, bigpi)) == bigpi
+        @test convert(BigFloat, convert(VaxFloatD, bige)) == bige
     end
 
     @testset "Promotion..." begin
