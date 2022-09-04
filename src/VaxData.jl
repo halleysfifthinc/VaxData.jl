@@ -28,11 +28,11 @@ function convert(::Type{T}, b::BigFloat) where {T<:VaxFloat}
     m = zero(uinttype(T))
     mbits = 0
     while !iszero(sig) && mbits <= significand_bits(T)
+        mbits += 1
         setbit = Bool(sig >= 1)
         sig -= setbit
         m = U(m | setbit) << 1
         sig *= 2
-        mbits += 1
     end
     e = ((exponent(b) + exponent_bias(T) + 1) % uinttype(T)) << (15 - exponent_bits(T))
     if e > exponent_mask(T)
@@ -40,16 +40,17 @@ function convert(::Type{T}, b::BigFloat) where {T<:VaxFloat}
         throw(InexactError(:convert, T, b))
     end
     m <<= significand_bits(T) - mbits
+    0.5 ≤ sig < 1 && (m += one(m))
     if iszero(e)
         # underflow
         return zero(T)
     end
     m = swap16bword(m)
     m &= significand_mask(T)
-    return T(e | (UInt32(signbit(b)) << 15) | m)
+    return T(e | (U(signbit(b)) << 15) | m)
 end
 
-# dumb and probably not-at-all performant
+# dumb and probably not-at-all performant but works
 function convert(::Type{BigFloat}, v::T; precision=significand_bits(T)+1) where {T<:VaxFloat}
     m = swap16bword(v.x)
     bstr = bitstring(m)
