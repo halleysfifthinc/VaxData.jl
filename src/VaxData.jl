@@ -28,19 +28,19 @@ function convert(::Type{T}, b::BigFloat) where {T<:VaxFloat}
     m = zero(uinttype(T))
     mbits = 0
     while !iszero(sig) && mbits <= significand_bits(T)
-        mbits += 1
         setbit = Bool(sig >= 1)
-        sig -= setbit
         m = U(m | setbit) << 1
+        sig -= setbit
         sig *= 2
+        mbits += 1
     end
     e = ((exponent(b) + exponent_bias(T) + 1) % uinttype(T)) << (15 - exponent_bits(T))
     if e > exponent_mask(T)
         # overflow
         throw(InexactError(:convert, T, b))
     end
-    m <<= significand_bits(T) - mbits
     0.5 ≤ sig < 1 && (m += one(m))
+    m >>>= -(significand_bits(T) - mbits) % Int
     if iszero(e)
         # underflow
         return zero(T)
