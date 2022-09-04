@@ -69,7 +69,7 @@ function nextfloat(f::VaxFloat, d::Integer)
         end
     end
     if fneg
-        fu |= SIGN_BIT
+        fu |= one(U) << (sizeof(fu)*8 - 1)
     end
 
     # Jump past the VAX FP reserved operand (sign = 1, exp = 0, mant ≠ 0)
