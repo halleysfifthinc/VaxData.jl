@@ -98,6 +98,9 @@
         @test VaxFloatD(prevfloat(convert(Float64, floatmin(VaxFloatD)))) === zero(VaxFloatD)
         @test VaxFloatD(convert(Float64, floatmin(VaxFloatD))) === floatmin(VaxFloatD)
 
+        # Subnormals become zero
+        @test VaxFloatD(prevfloat(floatmin(Float64))) == zero(VaxFloatD)
+
         # Numbers larger than floatmax(VaxFloatD) should error
         @test_throws InexactError VaxFloatD(nextfloat(convert(Float64, floatmax(VaxFloatD))))
 
