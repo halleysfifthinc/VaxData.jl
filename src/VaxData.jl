@@ -52,6 +52,7 @@ end
 
 # dumb and probably not-at-all performant but works
 function convert(::Type{BigFloat}, v::T; precision=significand_bits(T)+1) where {T<:VaxFloat}
+    iszero(v) && return BigFloat(0; precision)
     m = swap16bword(v.x)
     bstr = bitstring(m)
     s = signbit(v) ? "-" : ""
