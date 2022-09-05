@@ -89,10 +89,14 @@ function Base.show(io::IO, x::VaxFloat)
              (T === VaxFloatD) ? 'd' : 'g'
     print(io, "vax", letter)
 
-    if T === VaxFloatF
-        show(io, replace(repr(convert(Float32, x); context=IOContext(io)), "f" => "e"))
+    if get(io, :compact, false)
+        if T === VaxFloatF
+            show(io, replace(repr(convert(Float32, x); context=IOContext(io)), "f" => "e"))
+        else
+            show(io, repr(convert(Float64, x); context=IOContext(io)))
+        end
     else
-        show(io, repr(convert(Float64, x); context=IOContext(io)))
+        show(io, repr(convert(BigFloat, x)))
     end
 
     return nothing
