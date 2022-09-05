@@ -1,12 +1,10 @@
-export VaxFloatD
-
 struct VaxFloatD <: VaxFloat
     x::UInt64
 
-    VaxFloatD(x::UInt64) = new(ltoh(x))
+    VaxFloatD(x::Union{UInt32,UInt64}) = new(UInt64(ltoh(x)))
 end
 
-function VaxFloatD(x::T) where T <: Real
+function VaxFloatD(x::T) where {T<:Real}
     y = reinterpret(UInt64, convert(Float64, x))
     part1 = y & bmask32
     part2 = (y >>> 32) & bmask32
@@ -32,10 +30,10 @@ function VaxFloatD(x::T) where T <: Real
         m = ieeepart1 & IEEE_T_MANTISSA_MASK
 
         if e === zero(Int64)
-            m = (m << 1) | (vaxpart2  >>> 31)
+            m = (m << 1) | (vaxpart2 >>> 31)
             vaxpart2 <<= 1
             while m & IEEE_T_HIDDEN_BIT === zero(UInt64)
-                m = (m << 1) | (vaxpart2  >>> 31)
+                m = (m << 1) | (vaxpart2 >>> 31)
                 vaxpart2 <<= 1
                 e -= one(Int64)
             end
@@ -46,14 +44,14 @@ function VaxFloatD(x::T) where T <: Real
         if e <= zero(Int64)
             # Silent underflow
             return zero(VaxFloatD)
-        elseif e > (2*VAX_D_EXPONENT_BIAS - 1)
+        elseif e > (2 * VAX_D_EXPONENT_BIAS - 1)
             # Overflow
             throw(InexactError(:VaxFloatD, VaxFloatD, x))
         else
             vaxpart = (ieeepart1 & SIGN_BIT_64) |
-                (e << VAX_D_MANTISSA_SIZE) |
-                (m <<  (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE)) |
-                (vaxpart2 >>> (32 - (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE)))
+                      (e << VAX_D_MANTISSA_SIZE) |
+                      (m << (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE)) |
+                      (vaxpart2 >>> (32 - (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE)))
             vaxpart2 <<= (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE)
         end
     end
@@ -65,22 +63,14 @@ function VaxFloatD(x::T) where T <: Real
     vaxpart_4 = (vaxpart2 >>> 16) & bmask16
 
     res = htol((vaxpart_3 << 48) |
-          (vaxpart_4 << 32) |
-          (vaxpart_1 << 16) |
-          vaxpart_2)
+               (vaxpart_4 << 32) |
+               (vaxpart_1 << 16) |
+               vaxpart_2)
 
     return VaxFloatD(res)
 end
 
-Base.typemax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
-Base.floatmax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
-Base.typemin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000080)
-Base.floatmin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000080)
-
-Base.zero(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000000)
-Base.one(::Type{VaxFloatD}) = VaxFloatD(0x0000000000004080)
-
-function Base.convert(::Type{Float64}, x::VaxFloatD)
+function convert(::Type{Float64}, x::VaxFloatD)
     y = ltoh(x.x)
 
     vaxpart_1 = y & bmask16
@@ -103,7 +93,7 @@ function Base.convert(::Type{Float64}, x::VaxFloatD)
         ieeepart1 = ((vaxpart1 & SIGN_BIT_64) |
                      ((vaxpart1 & ~SIGN_BIT_64) >>>
                       (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE))) -
-                     ((UNO64 + VAX_D_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
+                    ((UNO64 + VAX_D_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
         ieeepart2 = (vaxpart1 << (32 - (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE))) |
                     (vaxpart2 >>> (VAX_D_MANTISSA_SIZE - IEEE_T_MANTISSA_SIZE))
 
@@ -121,7 +111,28 @@ function Base.convert(::Type{Float64}, x::VaxFloatD)
     return reinterpret(Float64, res)
 end
 
-function Base.convert(::Type{T}, x::VaxFloatD) where T <: Union{Float16,Float32,BigFloat,Integer}
+function convert(::Type{T}, x::VaxFloatD) where {T<:Union{Float16,Float32,Integer}}
     return convert(T, convert(Float64, x))
 end
+
+macro vaxd_str(str)
+    T = VaxFloatD
+    return convert(T, BigFloat(str; precision=significand_bits(T)+1))
+end
+
+floatmax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
+floatmin(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000080)
+typemax(::Type{VaxFloatD}) = VaxFloatD(0xffffffffffff7fff)
+typemin(::Type{VaxFloatD}) = VaxFloatD(typemax(UInt64))
+
+zero(::Type{VaxFloatD}) = VaxFloatD(0x0000000000000000)
+one(::Type{VaxFloatD}) = VaxFloatD(0x0000000000004080)
+
+uinttype(::Type{VaxFloatD}) = UInt64
+
+exponent_bits(::Type{VaxFloatD}) = VAX_D_EXPONENT_SIZE
+exponent_mask(::Type{VaxFloatD}) = UInt64(0x00007f80)
+exponent_bias(::Type{VaxFloatD}) = VAX_D_EXPONENT_BIAS
+significand_bits(::Type{VaxFloatD}) = 64 - 1 - VAX_D_EXPONENT_SIZE
+significand_mask(::Type{VaxFloatD}) = 0xffffffffffff007f
 

@@ -1,5 +1,3 @@
-export VaxInt16, VaxInt32
-
 struct VaxInt16 <: VaxInt
     x::UInt16
 

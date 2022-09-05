@@ -25,11 +25,38 @@
                                 1.2345678901234500000000000000,
                                 -1.2345678901234500000000000000 ])
 
+    @testset "Basic operators" begin
+        @test signbit(zero(VaxFloatD)) == false
+        @test signbit(one(VaxFloatD)) == false
+        @test signbit(-one(VaxFloatD)) == true
+        @test signbit(-(-one(VaxFloatD))) == false
+
+        @test zero(VaxFloatD) < one(VaxFloatD)
+        @test !(one(VaxFloatD) < one(VaxFloatD))
+        @test !(one(VaxFloatD) < zero(VaxFloatD))
+        @test one(VaxFloatD) <= one(VaxFloatD)
+
+        @test nextfloat(typemax(VaxFloatD)) == typemax(VaxFloatD)
+        @test prevfloat(typemin(VaxFloatD)) == typemin(VaxFloatD)
+        @test -prevfloat(-one(VaxFloatD)) == nextfloat(one(VaxFloatD))
+        @test nextfloat(zero(VaxFloatD)) == floatmin(VaxFloatD)
+        @test prevfloat(floatmin(VaxFloatD)) == zero(VaxFloatD)
+        @test prevfloat(zero(VaxFloatD)) == -floatmin(VaxFloatD)
+        @test nextfloat(-floatmin(VaxFloatD)) == zero(VaxFloatD)
+    end
+
     @testset "Conversion..." begin
         for (vax, ieee) in zip(d8_vax, d8_ieee)
             @test VaxFloatD(vax) == VaxFloatD(ieee)
             @test convert(Float64, VaxFloatD(vax)) == ieee
         end
+
+        @test convert(VaxFloatD, big"1.0") == one(VaxFloatD)
+        @test convert(VaxFloatD, big"-1.0") == -one(VaxFloatD)
+        bigpi = BigFloat(π; precision=Base.significand_bits(VaxFloatD)+1)
+        bige = BigFloat(ℯ; precision=Base.significand_bits(VaxFloatD)+1)
+        @test convert(BigFloat, convert(VaxFloatD, bigpi)) == bigpi
+        @test convert(BigFloat, convert(VaxFloatD, bige)) == bige
     end
 
     @testset "Promotion..." begin
@@ -46,7 +73,7 @@
 
     @testset "Number definitions" begin
         @test floatmax(VaxFloatD) == typemax(VaxFloatD)
-        @test floatmin(VaxFloatD) == typemin(VaxFloatD)
+        @test -typemax(VaxFloatD) == typemin(VaxFloatD)
 
         @test zero(VaxFloatD) == 0
         @test one(VaxFloatD) == 1

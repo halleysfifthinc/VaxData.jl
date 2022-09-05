@@ -1,12 +1,10 @@
-export VaxFloatG
-
 struct VaxFloatG <: VaxFloat
     x::UInt64
 
-    VaxFloatG(x::UInt64) = new(ltoh(x))
+    VaxFloatG(x::Union{UInt32,UInt64}) = new(UInt64(ltoh(x)))
 end
 
-function VaxFloatG(x::T) where T <: Real
+function VaxFloatG(x::T) where {T<:Real}
     y = reinterpret(UInt64, convert(Float64, x))
 
     part1 = y & bmask32
@@ -47,7 +45,7 @@ function VaxFloatG(x::T) where T <: Real
         if e <= zero(Int64)
             # Silent underflow
             return zero(VaxFloatG)
-        elseif e > (2*VAX_G_EXPONENT_BIAS - 1)
+        elseif e > (2 * VAX_G_EXPONENT_BIAS - 1)
             # Overflow
             throw(InexactError(:VaxFloatG, VaxFloatG, x))
         else
@@ -62,22 +60,14 @@ function VaxFloatG(x::T) where T <: Real
     vaxpart_4 = (vaxpart2 >>> 16) & bmask16
 
     res = htol((vaxpart_3 << 48) |
-          (vaxpart_4 << 32) |
-          (vaxpart_1 << 16) |
-          vaxpart_2)
+               (vaxpart_4 << 32) |
+               (vaxpart_1 << 16) |
+               vaxpart_2)
 
     return VaxFloatG(res)
 end
 
-Base.typemax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
-Base.floatmax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
-Base.floatmin(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000010)
-Base.typemin(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000010)
-
-Base.zero(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000000)
-Base.one(::Type{VaxFloatG}) = VaxFloatG(0x0000000000004010)
-
-function Base.convert(::Type{Float64}, x::VaxFloatG)
+function convert(::Type{Float64}, x::VaxFloatG)
     y = ltoh(x.x)
 
     vaxpart_1 = y & bmask16
@@ -102,7 +92,7 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
 
         e -= one(Int64) + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS
         if e > zero(Int64)
-            ieeepart1 = vaxpart1  - ((UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
+            ieeepart1 = vaxpart1 - ((UNO64 + VAX_G_EXPONENT_BIAS - IEEE_T_EXPONENT_BIAS) << IEEE_T_MANTISSA_SIZE)
             ieeepart2 = vaxpart2
         else
             # Subnormal result
@@ -125,7 +115,28 @@ function Base.convert(::Type{Float64}, x::VaxFloatG)
     return reinterpret(Float64, res)
 end
 
-function Base.convert(::Type{T}, x::VaxFloatG) where T <: Union{Float16,Float32,BigFloat,Integer}
+function convert(::Type{T}, x::VaxFloatG) where {T<:Union{Float16,Float32,Integer}}
     return convert(T, convert(Float64, x))
 end
+
+macro vaxg_str(str)
+    T = VaxFloatG
+    return convert(T, BigFloat(str; precision=significand_bits(T)+1))
+end
+
+floatmax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
+floatmin(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000010)
+typemax(::Type{VaxFloatG}) = VaxFloatG(0xffffffffffff7fff)
+typemin(::Type{VaxFloatG}) = VaxFloatG(typemax(UInt64))
+
+zero(::Type{VaxFloatG}) = VaxFloatG(0x0000000000000000)
+one(::Type{VaxFloatG}) = VaxFloatG(0x0000000000004010)
+
+uinttype(::Type{VaxFloatG}) = UInt64
+
+exponent_bits(::Type{VaxFloatG}) = VAX_G_EXPONENT_SIZE
+exponent_mask(::Type{VaxFloatG}) = UInt64(0x00007ff0)
+exponent_bias(::Type{VaxFloatG}) = VAX_G_EXPONENT_BIAS
+significand_bits(::Type{VaxFloatG}) = 64 - 1 - VAX_G_EXPONENT_SIZE
+significand_mask(::Type{VaxFloatG}) = 0xffffffffffff000f
 
